@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" style="height: 100%">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title>联创杰科技</title>
+    <!-- 避免IE使用兼容模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link href="../static/favicon.ico" th:href="@{/favicon.ico}" rel="shortcut icon" type="image/x-icon"/>
+    <link href="../static/css/index.css" th:href="@{/static/css/index.css}" rel="stylesheet"/>
+</head>
+<body style="height: 100%; overflow: hidden">
+<div v-cloak id="app" style="height: 100%">
+    <el-container>
+        <el-header>
+            <div class="head">
+                <div class="head_box">
+                    <div class="head_left">
+                        <a href="index" title="联创杰科技-电子元器件查询,datasheet下载,电子元器件搜索引擎">
+                            <img th:src="@{/image/lc_logo.png}" src="../static/image/lc_logo.png" alt="联创杰科技-电子元器件查询,datasheet下载,电子元器件搜索引擎">
+                        </a>
+                    </div>
+                    <div class="head_right"></div>
+                </div>
+            </div>
+        </el-header>
+        <el-main>
+            <el-row style="margin-top: 200px">
+                <a href="index" title="联创杰科技-电子元器件查询,datasheet下载,电子元器件搜索引擎">
+                    <img th:src="@{/image/lc_logo.png}" src="../static/image/lc_logo.png" alt="联创杰科技-电子元器件查询,datasheet下载,电子元器件搜索引擎">
+                </a>
+            </el-row>
+            <el-row>
+                <el-autocomplete size="large" v-model="input" :trigger-on-focus="false" :fetch-suggestions="querySearchAsync" placeholder="请输入内容" @select="handleSelect">
+                    <el-button slot="append" icon="el-icon-search" @click="getResult(this.input)">查询</el-button>
+                    <template slot-scope="{item}">
+                        <div class="name" v-html="item.name"></div>
+                        <span class="brand_name" v-html="item.brand_name"></span>
+                    </template>
+                </el-autocomplete>
+            </el-row>
+        </el-main>
+    </el-container>
+</div>
+<style>
+    .head {
+        text-align: center;
+        position: fixed;
+        background: #30403c;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10000;
+    }
+    .head_box {
+        height: 50px;
+        width: 1200px;
+        margin: 0 auto;
+        position: relative;
+        top: 7px;
+        padding: 7px 0;
+    }
+    .head_left {
+        position: absolute;
+        left: 0;
+        top: 5px;
+    }
+    .head_left, .head_left img {
+        height: 40px;
+    }
+    .el-container {
+        height: 100%;
+    }
+    .el-header {
+        height: 20%;
+    }
+    .el-main {
+        background-color: #ffffff;
+        color: #333;
+        text-align: center;
+        min-height: 80%;
+        height: 80%;
+    }
+    .el-input {
+        width: 550px;
+    }
+
+    .name {
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+    .brand_name {
+        font-size: 12px;
+        color: #b4b4b4;
+    }
+    .highlighted .addr {
+        color: #ddd;
+    }
+    [v-cloak] {
+        display: none;
+    }
+</style>
+<!-- 全局js -->
+<script th:src="@{/static/js/jquery.min.js}" src="../static/js/jquery.min.js"></script>
+<script th:src="@{/js/vue.min.js}" src="../static/js/vue.min.js" ></script>
+<script th:src="@{/js/axios.min.js}" src="../static/js/axios.min.js"></script>
+<script th:src="@{/js/index.js}" src="../static/js/index.js"></script>
+<script>
+    new Vue({
+        el: "#app",
+        data(){
+            return {
+                suggestions: [],
+                input: '',
+                timeout: null
+            };
+        },
+        methods: {
+            querySearchAsync(queryString, cb) {
+                var url = "search/1/10";
+                if (queryString && queryString !== '') {
+                    url = "search/" + queryString + "/1/10";
+                }
+                console.log("input", this.input)
+                console.log("querystring", queryString)
+                axios.get("search/" + queryString + "/1/10").then(res => {
+                    var suggestions = res.data.data;
+                    console.log("suggestions", suggestions);
+                    var results = res.data.data;
+                    // var inputValue = this.input.toLowerCase();
+                    // for (let item of suggestions) {
+                    //     if (inputValue.indexOf(item.name.toLowerCase()) !== -1 ||
+                    //         inputValue.indexOf(item.category_name.toLowerCase()) !== -1 ||
+                    //         inputValue.indexOf(item.brand_name.toLowerCase()) !== -1
+                    //     ){
+                    //         console.log("添加item", item)
+                    //         results.push(item);
+                    //     }
+                    // }
+
+                    clearTimeout(this.timeout);
+                    this.timeout = setTimeout(() => {
+                        cb(results);
+                    }, 1000);
+                })
+            },
+            handleSelect(input) {
+                this.getResult(input);
+            },
+            getResult(input) {
+                console.log("查询input",input);
+            }
+        },
+        mounted() {
+            this.suggestions = this.querySearchAsync
+        }
+    })
+</script>
+</body>
+</html>
